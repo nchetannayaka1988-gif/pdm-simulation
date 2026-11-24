@@ -1,0 +1,119 @@
+{
+  "title": "Asset Health Matrix",
+  "uid": "pdm-asset-health",
+  "tags": ["pdm", "health", "matrix"],
+  "timezone": "browser",
+  "refresh": "5s",
+  "time": { "from": "now-5m", "to": "now" },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Vibration RMS",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "datasource": "InfluxDB-PDM",
+      "targets": [
+        {
+          "query": "from(bucket:\"pdm-data\") |> range(start: -1m) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"vib_rms\") |> last()",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "m/s²",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 10 },
+            { "color": "red", "value": 20 }
+          ]}
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Current RMS",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "datasource": "InfluxDB-PDM",
+      "targets": [
+        {
+          "query": "from(bucket:\"pdm-data\") |> range(start: -1m) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"current_rms\") |> last()",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "A",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 6 },
+            { "color": "red", "value": 8 }
+          ]}
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Temperature",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "datasource": "InfluxDB-PDM",
+      "targets": [
+        {
+          "query": "from(bucket:\"pdm-data\") |> range(start: -1m) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"temperature\") |> last()",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "°C",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 60 },
+            { "color": "red", "value": 80 }
+          ]}
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Fault Status",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "datasource": "InfluxDB-PDM",
+      "targets": [
+        {
+          "query": "from(bucket:\"pdm-data\") |> range(start: -1m) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"fault\") |> last()",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "HEALTHY", "color": "green" } } },
+            { "type": "value", "options": { "1": { "text": "INNER RACE", "color": "red" } } },
+            { "type": "value", "options": { "2": { "text": "OUTER RACE", "color": "orange" } } }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "BPFI / BPFO Energy (Fault Frequencies)",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "datasource": "InfluxDB-PDM",
+      "targets": [
+        { "query": "from(bucket:\"pdm-data\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"bpfi_energy\")", "refId": "A", "legendFormat": "BPFI (Inner Race)" },
+        { "query": "from(bucket:\"pdm-data\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"bpfo_energy\")", "refId": "B", "legendFormat": "BPFO (Outer Race)" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "energy" } }
+    },
+    {
+      "type": "timeseries",
+      "title": "Vibration RMS Trend",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "datasource": "InfluxDB-PDM",
+      "targets": [
+        { "query": "from(bucket:\"pdm-data\") |> range(start: -5m) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"vib_rms\")", "refId": "A" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "m/s²" } }
+    }
+  ]
+}

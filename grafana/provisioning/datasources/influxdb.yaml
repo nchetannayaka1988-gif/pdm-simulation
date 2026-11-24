@@ -1,0 +1,15 @@
+apiVersion: 1
+datasources:
+  - name: InfluxDB-PDM
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    jsonData:
+      organization: pdm
+      defaultBucket: pdm-data
+      version: Flux
+      tlsSkipVerify: true
+    secureJsonData:
+      token: my-super-secret-token
+    editable: false
+    isDefault: true

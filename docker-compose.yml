@@ -1,0 +1,52 @@
+services:
+  mqtt:
+    image: eclipse-mosquitto:latest
+    ports: ["1883:1883", "9001:9001"]
+    networks: [pdm-net]
+  
+  influxdb:
+    image: influxdb:2
+    ports: ["8086:8086"]
+    volumes: ["influxdb-data:/var/lib/influxdb"]
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=password
+      - DOCKER_INFLUXDB_INIT_ORG=pdm
+      - DOCKER_INFLUXDB_INIT_BUCKET=pdm-data
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-token
+    networks: [pdm-net]
+  
+  grafana:
+    image: grafana/grafana:latest
+    ports: ["3000:3000"]
+    volumes: 
+      - "grafana-data:/var/lib/grafana"
+      - "./grafana/provisioning:/etc/grafana/provisioning"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on: [influxdb]
+    networks: [pdm-net]
+  
+  plc_sim:
+    build: ./plc_sim
+    ports: ["4840:4840"]
+    volumes:
+      - "C:/Users/Chethan N/proj1/pdm-simulation/data:/data:ro"
+    depends_on: [mqtt]
+    networks: [pdm-net]
+  
+  influx_writer:
+    build: ./services
+    depends_on: [mqtt, influxdb]
+    networks: [pdm-net]
+    restart: unless-stopped
+
+volumes:
+  influxdb-data:
+  grafana-data:
+
+networks:
+  pdm-net:
+    driver: bridge

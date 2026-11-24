@@ -1,0 +1,50 @@
+{
+  "title": "Vibration Analysis",
+  "uid": "pdm-vibration",
+  "tags": ["pdm", "vibration", "fft"],
+  "timezone": "browser",
+  "refresh": "1s",
+  "time": { "from": "now-1m", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Live Vibration FFT (Simulated)",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 12 },
+      "datasource": "InfluxDB-PDM",
+      "targets": [
+        { "query": "from(bucket:\"pdm-data\") |> range(start: -30s) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"vib_rms\")", "refId": "A", "legendFormat": "Vib RMS" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "m/s²", "color": { "mode": "palette-classic" } } },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "single" } }
+    },
+    {
+      "type": "bargauge",
+      "title": "Fault Frequency Energy (BPFI/BPFO)",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 },
+      "datasource": "InfluxDB-PDM",
+      "targets": [
+        { "query": "from(bucket:\"pdm-data\") |> range(start: -10s) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"bpfi_energy\") |> last()", "refId": "A", "legendFormat": "BPFI Energy" },
+        { "query": "from(bucket:\"pdm-data\") |> range(start: -10s) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"bpfo_energy\") |> last()", "refId": "B", "legendFormat": "BPFO Energy" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Fault Classification",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 },
+      "datasource": "InfluxDB-PDM",
+      "targets": [
+        { "query": "from(bucket:\"pdm-data\") |> range(start: -1m) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"fault\") |> last()", "refId": "A" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "HEALTHY ✅", "color": "green" } } },
+            { "type": "value", "options": { "1": { "text": "INNER RACE FAULT 🔴", "color": "red" } } },
+            { "type": "value", "options": { "2": { "text": "OUTER RACE FAULT 🟠", "color": "orange" } } }
+          ]
+        },
+        "options": { "textMode": "value", "colorMode": "value" }
+      }
+    }
+  ]
+}

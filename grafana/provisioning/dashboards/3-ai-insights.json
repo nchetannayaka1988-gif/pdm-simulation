@@ -1,0 +1,40 @@
+{
+  "title": "AI Insights & Predictive Maintenance",
+  "uid": "pdm-ai-insights",
+  "tags": ["pdm", "ai", "predictive", "ruls"],
+  "timezone": "browser",
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "RUL Estimation (Hours) - Simulated",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": "InfluxDB-PDM",
+      "targets": [
+        { "query": "from(bucket:\"pdm-data\") |> range(start: -1h) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"fault\") |> map(fn: (r) => ({ r with _value: if r._value == 0 then 1000.0 else if r._value == 1 then 200.0 else 500.0 }))", "refId": "A", "legendFormat": "Estimated RUL (hrs)" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "h", "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "yellow", "value": 200 }, { "color": "green", "value": 500 } ] } } }
+    },
+    {
+      "type": "timeseries",
+      "title": "Anomaly Score Trend (Simulated from Vibration)",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": "InfluxDB-PDM",
+      "targets": [
+        { "query": "from(bucket:\"pdm-data\") |> range(start: -1h) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"vib_rms\") |> map(fn: (r) => ({ r with _value: r._value / 20.0 }))", "refId": "A", "legendFormat": "Anomaly Score (0-1)" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ratio", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 0.8 } ] } } }
+    },
+    {
+      "type": "table",
+      "title": "Predicted Work Orders (Simulated)",
+      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 10 },
+      "datasource": "InfluxDB-PDM",
+      "targets": [
+        { "query": "from(bucket:\"pdm-data\") |> range(start: -1h) |> filter(fn: (r) => r._measurement == \"plc_data\" and r._field == \"fault\") |> last() |> map(fn: (r) => ({ r with asset: \"Motor-M-101\", component: \"Drive End Bearing\", predicted_failure: if r._value == 0 then \"None\" else if r._value == 1 then \"Inner Race Spalling\" else \"Outer Race Spalling\", rul_hours: if r._value == 0 then 1000 else if r._value == 1 then 200 else 500, priority: if r._value == 0 then \"Low\" else if r._value == 1 then \"Critical\" else \"High\" }))", "refId": "A" }
+      ],
+      "options": { "showHeader": true }
+    }
+  ]
+}
